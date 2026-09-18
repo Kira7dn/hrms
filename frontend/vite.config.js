@@ -6,57 +6,65 @@ import frappeui from "frappe-ui/vite"
 import path from "path"
 import fs from "fs"
 
+// Letron: bo sourcemap va PWA khi chi can build nhanh de xem/thu nghiem.
+// Dat HRMS_FAST_BUILD=1 truoc khi chay `yarn build`. Mac dinh giu nguyen hanh vi upstream.
+const FAST_BUILD = !!process.env.HRMS_FAST_BUILD
+// Letron: cho phep doi cong dev de khong dung cong backend.
+const DEV_PORT = Number(process.env.HRMS_DEV_PORT || 8080)
+
 export default defineConfig({
 	server: {
-		port: 8080,
+		port: DEV_PORT,
 		proxy: getProxyOptions(),
 		allowedHosts: true,
 	},
 	plugins: [
 		vue(),
-		frappeui(),
-		VitePWA({
-			registerType: "autoUpdate",
-			strategies: "injectManifest",
-			injectRegister: null,
-			devOptions: {
-				enabled: true,
-			},
-			manifest: {
-				display: "standalone",
-				name: "Frappe HR",
-				short_name: "Frappe HR",
-				start_url: "/hrms",
-				description: "Everyday HR & Payroll operations at your fingertips",
-				theme_color: "#ffffff",
-				icons: [
-					{
-						src: "/assets/hrms/manifest/manifest-icon-192.maskable.png",
-						sizes: "192x192",
-						type: "image/png",
-						purpose: "any",
-					},
-					{
-						src: "/assets/hrms/manifest/manifest-icon-192.maskable.png",
-						sizes: "192x192",
-						type: "image/png",
-						purpose: "maskable",
-					},
-					{
-						src: "/assets/hrms/manifest/manifest-icon-512.maskable.png",
-						sizes: "512x512",
-						type: "image/png",
-						purpose: "any",
-					},
-					{
-						src: "/assets/hrms/manifest/manifest-icon-512.maskable.png",
-						sizes: "512x512",
-						type: "image/png",
-						purpose: "maskable",
-					},
-				],
-			},
-		}),
+		frappeui({ port: DEV_PORT }),
+		...(FAST_BUILD ? [] : [
+			VitePWA({
+				registerType: "autoUpdate",
+				strategies: "injectManifest",
+				injectRegister: null,
+				devOptions: {
+					enabled: true,
+				},
+				manifest: {
+					display: "standalone",
+					name: "Frappe HR",
+					short_name: "Frappe HR",
+					start_url: "/hrms",
+					description: "Everyday HR & Payroll operations at your fingertips",
+					theme_color: "#ffffff",
+					icons: [
+						{
+							src: "/assets/hrms/manifest/manifest-icon-192.maskable.png",
+							sizes: "192x192",
+							type: "image/png",
+							purpose: "any",
+						},
+						{
+							src: "/assets/hrms/manifest/manifest-icon-192.maskable.png",
+							sizes: "192x192",
+							type: "image/png",
+							purpose: "maskable",
+						},
+						{
+							src: "/assets/hrms/manifest/manifest-icon-512.maskable.png",
+							sizes: "512x512",
+							type: "image/png",
+							purpose: "any",
+						},
+						{
+							src: "/assets/hrms/manifest/manifest-icon-512.maskable.png",
+							sizes: "512x512",
+							type: "image/png",
+							purpose: "maskable",
+						},
+					],
+				},
+			})
+		]),
 	],
 	resolve: {
 		alias: {
@@ -70,7 +78,7 @@ export default defineConfig({
 		commonjsOptions: {
 			include: [/tailwind.config.js/, /node_modules/],
 		},
-		sourcemap: true,
+		sourcemap: !FAST_BUILD,
 		rollupOptions: {
 			output: {
 				manualChunks: {
